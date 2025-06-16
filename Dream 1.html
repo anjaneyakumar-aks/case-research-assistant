@@ -1,0 +1,165 @@
+<!-- ✅ Upgraded Case Research Assistant UI & Logic -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Case Research Assistant - Enhanced</title>
+  <style>
+    body {
+      transition: background 0.3s, color 0.3s;
+      background: #f8f9fa;
+      color: #1a202c;
+      font-family: sans-serif;
+    }
+    .dark-mode {
+      background: #1a202c;
+      color: #f1f5f9;
+    }
+    .toggle-btn {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #4a5568;
+      color: white;
+      padding: 8px 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    #feedbackModal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+      display: none;
+      z-index: 1001;
+    }
+    #feedbackModal.dark-mode {
+      background: #2d3748;
+      color: white;
+    }
+    #overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: none;
+      z-index: 1000;
+    }
+    #copyBtn {
+      margin-top: 10px;
+      padding: 6px 12px;
+      background: #3182ce;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="toggle-btn" onclick="toggleDarkMode()">🌗 Toggle Mode</div>
+
+  <h1>🔍 Case Research Assistant</h1>
+  <p>Enter a legal topic (e.g., Article 21, Contract Law)...</p>
+  <input type="text" id="query" placeholder="Type here...">
+  <button onclick="smartSearch()">Search</button>
+
+  <div id="result"></div>
+  <button id="copyBtn" onclick="copyResultLink()" style="display: none;">📋 Copy Shareable Result Link</button>
+  <br>
+  <button onclick="openFeedback()">💬 Send Feedback</button>
+
+  <div id="overlay"></div>
+  <div id="feedbackModal">
+    <h3>Feedback</h3>
+    <textarea placeholder="Enter your feedback here..." style="width:100%; height:80px;"></textarea>
+    <br><br>
+    <button onclick="closeFeedback()">Close</button>
+  </div>
+
+  <script>
+    const db = {
+  'article 21': 'Article 21 ensures the right to life and liberty.',
+  'contract law': 'Contract law deals with legally enforceable agreements.',
+  'ipc 302': 'Section 302 IPC deals with punishment for murder. It prescribes death or life imprisonment and a fine.',
+  'dowry': 'The Dowry Prohibition Act, 1961 criminalizes giving or receiving dowry in India. Violation can lead to imprisonment and fine.',
+  'anticipatory bail': 'Anticipatory bail is a legal provision under Section 438 CrPC that allows a person to seek bail in anticipation of arrest.',
+  'legal notice': 'A legal notice is a formal communication informing the other party about an intended legal action.',
+  'section 498a': 'Section 498A IPC protects married women from cruelty by husband or relatives. Misuse concerns have led to stricter procedural safeguards.',
+  'bail': 'Bail is a legal release from custody. It can be regular or anticipatory and depends on whether the offence is bailable or not.',
+  'fir': 'FIR (First Information Report) is recorded under Section 154 CrPC. It starts the criminal investigation process.'
+};
+
+    const typoMap = {
+      'contrakt': 'contract',
+      'artical': 'article',
+      'constatution': 'constitution',
+      'famly': 'family',
+      'consumar': 'consumer'
+    };
+
+    function correctTypos(text) {
+      const words = text.split(" ");
+      return words.map(w => typoMap[w.toLowerCase()] || w).join(" ");
+    }
+
+    function smartSearch() {
+      const input = document.getElementById('query').value.toLowerCase().trim();
+      const corrected = correctTypos(input);
+      const match = Object.keys(db).find(k => corrected.includes(k));
+      const resultDiv = document.getElementById('result');
+
+      if (match) {
+        resultDiv.innerHTML = `<h3>Result for: ${match.toUpperCase()}</h3><p>${db[match]}</p>`;
+        document.getElementById('copyBtn').style.display = 'inline-block';
+      } else {
+        resultDiv.innerHTML = `
+          <p>No exact result. Try:</p>
+          <ul>
+            <li>Check spelling (e.g., "Contract Law")</li>
+            <li>Use simpler legal terms</li>
+            <li>Try "Family Law", "CrPC", "Article 21" etc.</li>
+          </ul>
+        `;
+        document.getElementById('copyBtn').style.display = 'none';
+      }
+    }
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      document.getElementById('feedbackModal').classList.toggle('dark-mode');
+    }
+
+    function openFeedback() {
+      document.getElementById('overlay').style.display = 'block';
+      document.getElementById('feedbackModal').style.display = 'block';
+    }
+
+    function closeFeedback() {
+      document.getElementById('overlay').style.display = 'none';
+      document.getElementById('feedbackModal').style.display = 'none';
+    }
+
+    function copyResultLink() {
+      const query = document.getElementById('query').value.trim();
+      const link = `${window.location.href.split('?')[0]}?q=${encodeURIComponent(query)}`;
+      navigator.clipboard.writeText(link);
+      alert('Link copied!');
+    }
+
+    // Auto-search if shared via link
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('q')) {
+      document.getElementById('query').value = urlParams.get('q');
+      smartSearch();
+    }
+  </script>
+</body>
+</html>
